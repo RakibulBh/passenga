@@ -7,6 +7,7 @@ import { Alert, Image, ScrollView, Text, View } from "react-native";
 import OAuth from "@/components/OAuth";
 import { useSignUp } from "@clerk/clerk-expo";
 import { ReactNativeModal } from "react-native-modal";
+import { fetchAPI } from "@/lib/fetch";
 
 const SignUp = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -56,7 +57,15 @@ const SignUp = () => {
       });
 
       if (signUpAttempt.status === "complete") {
-        //TODO: Create a database user!
+        // Create a user in the Neon Postgres Database
+        await fetchAPI("/(api)/user", {
+          method: "POST",
+          body: JSON.stringify({
+            name: form.name,
+            email: form.email,
+            clerkId: signUpAttempt.createdUserId,
+          }),
+        });
         await setActive({ session: signUpAttempt.createdSessionId });
         setVerification({ ...verification, state: "success" });
       } else {
